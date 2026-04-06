@@ -563,7 +563,8 @@ document.addEventListener('DOMContentLoaded', () => {
           body: JSON.stringify({ contents: [{ parts: [{ text: 'hi' }] }] }),
         }
       );
-      if (!res.ok) throw new Error('invalid');
+      // 429 = rate limited but key is valid
+      if (!res.ok && res.status !== 429) throw new Error('invalid');
       Storage.setApiKey(key);
       setupLoading.classList.add('hidden');
       setupBtn.disabled = false;
