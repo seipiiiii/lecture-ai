@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>LectureAI</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ========== 初回APIキー設定画面 ========== -->
+  <div id="setup-screen" class="setup-screen hidden">
+    <div class="setup-inner">
+      <div class="setup-logo">🎙️</div>
+      <h1 class="setup-title">LectureAI</h1>
+      <p class="setup-subtitle">講義音声をAIで自動解析<br>まずはGemini APIキーを設定してください</p>
+
+      <div class="setup-form">
+        <label class="field-label">Gemini API キー</label>
+        <div class="api-key-wrap mt-8">
+          <input type="password" id="setup-api-key" class="field-input" placeholder="AIza..." autocomplete="off" />
+          <button id="setup-toggle-key" class="icon-btn-sm" aria-label="表示切り替え">👁</button>
+        </div>
+        <p class="field-hint mt-8">
+          <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">
+            Google AI Studio でAPIキーを取得 →
+          </a>
+        </p>
+        <div id="setup-error" class="setup-error hidden">⚠️ APIキーを入力してください</div>
+        <button id="setup-start-btn" class="btn-primary mt-16">始める</button>
+      </div>
+
+      <div id="setup-loading" class="setup-loading hidden">
+        <div class="spinner"></div>
+        <span>確認中…</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== ヘッダー ========== -->
+  <header class="app-header">
+    <span class="app-title">LectureAI</span>
+    <button class="icon-btn" id="btn-settings" aria-label="設定">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- ========== メインコンテンツ ========== -->
+  <main class="main-content">
+
+    <!-- ホーム画面 -->
+    <section id="screen-home" class="screen active">
+      <!-- API キー未設定バナー -->
+      <div id="api-key-banner" class="banner banner-warn hidden">
+        <span>⚠️ APIキーが設定されていません</span>
+        <button class="banner-link" id="btn-banner-settings">設定する</button>
+      </div>
+
+      <!-- 入力エリア -->
+      <div class="section">
+        <label class="field-label">講義タイトル</label>
+        <input type="text" id="input-title" class="field-input" placeholder="例：経済学 #5" />
+
+        <label class="field-label mt-12">タグ</label>
+        <input type="text" id="input-tags" class="field-input" placeholder="例：#月2 #試験" />
+
+        <!-- ファイルアップロードエリア -->
+        <div id="drop-zone" class="drop-zone mt-12">
+          <input type="file" id="file-input" accept=".mp3,.wav,.m4a,.webm,.ogg,audio/mp3,audio/wav,audio/mp4,audio/webm,audio/ogg" hidden />
+          <div id="drop-zone-idle" class="drop-zone-idle">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#BBBBBB" stroke-width="1.5">
+              <polyline points="16 16 12 12 8 16"/>
+              <line x1="12" y1="12" x2="12" y2="21"/>
+              <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+            </svg>
+            <p class="drop-text">音声ファイルを選択</p>
+            <p class="drop-subtext">MP3、MP4、WAV、M4A、OGG、WebM 対応</p>
+          </div>
+          <div id="drop-zone-selected" class="drop-zone-selected hidden">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4CD964" stroke-width="2">
+              <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            </svg>
+            <div class="file-info">
+              <span id="file-name" class="file-name"></span>
+              <span id="file-size" class="file-size"></span>
+            </div>
+            <button id="btn-clear-file" class="clear-btn" aria-label="ファイルを解除">×</button>
+          </div>
+        </div>
+
+        <button id="btn-analyze" class="btn-primary mt-16" disabled>分析する</button>
+      </div>
+
+      <!-- プログレスエリア -->
+      <div id="progress-area" class="section hidden">
+        <div class="progress-status">
+          <div class="spinner"></div>
+          <span id="progress-text" class="progress-text">音声を読み込み中…</span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div id="progress-bar" class="progress-bar" style="width:10%"></div>
+        </div>
+      </div>
+
+      <!-- 解析結果エリア -->
+      <div id="result-area" class="hidden">
+        <!-- 3行要約 -->
+        <div class="result-section">
+          <div class="result-header">
+            <h2 class="result-title">📋 3行要約</h2>
+            <button class="copy-btn" data-target="result-summary">コピー</button>
+          </div>
+          <div class="card">
+            <p id="result-summary" class="result-text"></p>
+          </div>
+        </div>
+
+        <!-- 要点 -->
+        <div class="result-section">
+          <div class="result-header">
+            <h2 class="result-title">✅ 要点</h2>
+            <button class="copy-btn" data-target="result-keypoints">コピー</button>
+          </div>
+          <div class="card">
+            <ul id="result-keypoints" class="keypoints-list"></ul>
+          </div>
+        </div>
+
+        <!-- 全文文字起こし（アコーディオン） -->
+        <div class="result-section">
+          <div class="result-header">
+            <h2 class="result-title">📄 全文文字起こし</h2>
+            <button class="copy-btn" data-target="result-transcription">コピー</button>
+          </div>
+          <button class="accordion-toggle" id="toggle-transcription" aria-expanded="false">
+            <span>全文を表示する</span>
+            <svg class="accordion-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div id="accordion-transcription" class="accordion-content hidden">
+            <div class="card">
+              <p id="result-transcription" class="result-text transcription-text"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 予想問題 -->
+        <div class="result-section">
+          <div class="result-header">
+            <h2 class="result-title">📝 予想問題</h2>
+          </div>
+          <div id="result-quiz-list"></div>
+        </div>
+
+        <div class="section pb-safe">
+          <button id="btn-save" class="btn-primary">💾 保存する</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 検索画面 -->
+    <section id="screen-search" class="screen">
+      <div class="search-bar-wrap">
+        <div class="search-input-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input type="text" id="search-input" class="search-input" placeholder="講義を検索…" />
+        </div>
+        <button id="btn-search-cancel" class="search-cancel">キャンセル</button>
+      </div>
+
+      <div id="search-history-section">
+        <p class="section-label">最近の検索</p>
+        <ul id="search-history-list" class="search-history-list"></ul>
+      </div>
+
+      <div id="search-results-section" class="hidden">
+        <p class="section-label">検索結果</p>
+        <div id="search-results-list"></div>
+      </div>
+
+      <div id="search-empty" class="empty-state hidden">
+        <p>「<span id="search-empty-query"></span>」に一致する講義は見つかりませんでした</p>
+      </div>
+    </section>
+
+    <!-- クイズ画面 -->
+    <section id="screen-quiz" class="screen">
+      <h1 class="screen-title-center">クイズモード</h1>
+
+      <!-- タグフィルター -->
+      <div class="tag-filter-wrap">
+        <div id="quiz-tag-filter" class="tag-filter"></div>
+      </div>
+
+      <!-- クイズコンテンツ -->
+      <div id="quiz-content">
+        <div id="quiz-empty" class="empty-state">
+          <p>クイズがありません<br>講義を解析すると問題が生成されます</p>
+        </div>
+
+        <!-- 問題表示 -->
+        <div id="quiz-question-wrap" class="hidden">
+          <div class="card quiz-card">
+            <div class="quiz-meta">
+              <span id="quiz-category" class="quiz-category"></span>
+              <span id="quiz-progress" class="quiz-progress"></span>
+            </div>
+            <p class="quiz-label">問題 <span id="quiz-num"></span>:</p>
+            <p id="quiz-question" class="quiz-question"></p>
+          </div>
+
+          <!-- 選択肢（答えを表示後に出現） -->
+          <ul id="quiz-options" class="quiz-options mt-12 hidden"></ul>
+
+          <!-- フィードバック -->
+          <div id="quiz-feedback" class="quiz-feedback hidden">
+            <p id="quiz-explanation" class="quiz-explanation"></p>
+          </div>
+
+          <!-- 答えを表示ボタン -->
+          <button id="btn-show-answer" class="btn-outline-green mt-16">答えを表示</button>
+
+          <!-- 次の問題ボタン -->
+          <button id="btn-quiz-next" class="btn-primary mt-12 hidden">次の問題へ</button>
+        </div>
+
+        <!-- 結果画面 -->
+        <div id="quiz-result-wrap" class="hidden">
+          <div class="card quiz-result-card">
+            <div class="quiz-score-icon">🎉</div>
+            <p class="quiz-score-text">結果発表</p>
+            <p id="quiz-score-value" class="quiz-score-value"></p>
+            <p id="quiz-score-msg" class="quiz-score-msg"></p>
+            <button id="btn-quiz-retry" class="btn-primary mt-16">もう一度挑戦</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- マイフォルダ画面 -->
+    <section id="screen-folder" class="screen">
+      <h1 class="screen-title-center">マイフォルダ</h1>
+      <div id="folder-list"></div>
+      <div id="folder-empty" class="empty-state hidden">
+        <p>📂 まだ講義がありません<br>ホームから音声を解析してください</p>
+      </div>
+
+      <!-- フォルダ内講義一覧（サブビュー） -->
+      <div id="folder-detail" class="subview hidden">
+        <button class="back-btn" id="btn-folder-back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          戻る
+        </button>
+        <h2 id="folder-detail-title" class="screen-title"></h2>
+        <div id="folder-detail-list"></div>
+      </div>
+
+      <!-- FAB -->
+      <button id="btn-add-tag" class="fab" aria-label="タグを追加">＋</button>
+    </section>
+
+  </main>
+
+  <!-- ========== タブバー ========== -->
+  <nav class="tab-bar">
+    <button class="tab-item active" data-screen="home">
+      <svg class="tab-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <span class="tab-label">ホーム</span>
+    </button>
+    <button class="tab-item" data-screen="search">
+      <svg class="tab-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <span class="tab-label">検索</span>
+    </button>
+    <button class="tab-item" data-screen="quiz">
+      <svg class="tab-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10 9 9 9 8 9"/>
+      </svg>
+      <span class="tab-label">クイズ</span>
+    </button>
+    <button class="tab-item" data-screen="folder">
+      <svg class="tab-svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+      </svg>
+      <span class="tab-label">フォルダ</span>
+    </button>
+  </nav>
+
+  <!-- ========== 「?」ヘルプボタン ========== -->
+  <button id="btn-help" class="help-fab" aria-label="ヘルプ">?</button>
+
+  <!-- ========== モーダル: API キー設定 ========== -->
+  <div id="modal-settings" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2 class="modal-title">⚙️ 設定</h2>
+        <button class="modal-close" id="btn-close-settings">×</button>
+      </div>
+      <div class="modal-body">
+        <label class="field-label">Gemini API キー</label>
+        <div class="api-key-wrap">
+          <input type="password" id="input-api-key" class="field-input" placeholder="AIza..." autocomplete="off" />
+          <button id="btn-toggle-api-key" class="icon-btn-sm" aria-label="表示切り替え">👁</button>
+        </div>
+        <p class="field-hint">
+          APIキーは端末のlocalStorageにのみ保存されます。<br>
+          <a href="https://ai.google.dev/" target="_blank" rel="noopener">Google AI Studio</a> で取得できます。
+        </p>
+        <button id="btn-save-api-key" class="btn-primary mt-16">保存する</button>
+        <button id="btn-delete-api-key" class="btn-danger mt-8">APIキーを削除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== モーダル: ヘルプ ========== -->
+  <div id="modal-help" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2 class="modal-title">❓ 使い方</h2>
+        <button class="modal-close" id="btn-close-help">×</button>
+      </div>
+      <div class="modal-body">
+        <ol class="help-list">
+          <li><strong>APIキーを設定</strong>（右上アイコン）<br>Google AI StudioでGemini APIキーを取得して入力してください。</li>
+          <li><strong>音声ファイルを選択</strong><br>MP3 / WAV / M4A / WEBM / OGGに対応。最大20MB。まずは30秒〜2分の短い音声でお試しください。</li>
+          <li><strong>「分析する」をタップ</strong><br>文字起こし → 要約 → クイズ生成の順に処理されます。</li>
+          <li><strong>結果を確認・コピー</strong><br>要約・要点はコピーボタンでメモ帳に貼り付けできます。</li>
+          <li><strong>クイズで復習</strong><br>クイズタブからタグで絞り込んで問題を解けます。</li>
+        </ol>
+        <div class="help-note">
+          ⚠️ 個人情報や機密性の高い音声はアップロードしないでください。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== モーダル: 講義詳細 ========== -->
+  <div id="modal-lecture" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-sheet modal-sheet-tall">
+      <div class="modal-header">
+        <h2 id="lecture-detail-title" class="modal-title"></h2>
+        <button class="modal-close" id="btn-close-lecture">×</button>
+      </div>
+      <div class="modal-body" id="lecture-detail-body">
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== トースト ========== -->
+  <div id="toast" class="toast hidden" role="alert" aria-live="polite"></div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/quiz.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

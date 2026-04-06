@@ -1,0 +1,16 @@
+# API キーや機密ファイルを除外
+.env
+*.env
+secrets.json
+api_key.txt
+
+# OS 生成ファイル
+.DS_Store
+Thumbs.db
+
+# エディタ設定
+.vscode/
+.idea/
+
+# Node (将来的な拡張用)
+node_modules/
