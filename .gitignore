@@ -4,6 +4,9 @@
 secrets.json
 api_key.txt
 
+# ローカル開発設定（サーバー設定を含むため除外）
+.claude/
+
 # OS 生成ファイル
 .DS_Store
 Thumbs.db
