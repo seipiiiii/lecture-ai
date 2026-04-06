@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('file-size').textContent = UI.formatFileSize(file.size);
     document.getElementById('drop-zone-idle').classList.add('hidden');
     document.getElementById('drop-zone-selected').classList.remove('hidden');
-    document.getElementById('btn-analyze').disabled = false;
+    document.getElementById('btn-analyze').classList.remove('btn-inactive');
   };
 
   const clearFile = () => {
@@ -153,11 +153,14 @@ document.addEventListener('DOMContentLoaded', () => {
     fileInput.value = '';
     document.getElementById('drop-zone-idle').classList.remove('hidden');
     document.getElementById('drop-zone-selected').classList.add('hidden');
-    document.getElementById('btn-analyze').disabled = true;
+    document.getElementById('btn-analyze').classList.add('btn-inactive');
   };
 
   // 分析ボタン
-  document.getElementById('btn-analyze').addEventListener('click', runAnalysis);
+  document.getElementById('btn-analyze').addEventListener('click', () => {
+    if (document.getElementById('btn-analyze').classList.contains('btn-inactive')) return;
+    runAnalysis();
+  });
 
   // プログレス更新
   let analysisResult = null;
@@ -174,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (runEl) runEl.classList.remove('hidden');
     document.getElementById('progress-area').classList.remove('hidden');
     document.getElementById('result-area').classList.add('hidden');
-    document.getElementById('btn-analyze').disabled = true;
+    document.getElementById('btn-analyze').classList.add('btn-inactive');
     document.getElementById('btn-analyze').textContent = '分析中…';
     document.getElementById('progress-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
@@ -187,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
       errEl.textContent = '⚠️ ' + msg;
       errEl.classList.remove('hidden');
     }
-    document.getElementById('btn-analyze').disabled = false;
+    document.getElementById('btn-analyze').classList.remove('btn-inactive');
     document.getElementById('btn-analyze').textContent = '分析する';
   };
 

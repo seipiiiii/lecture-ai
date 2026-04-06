@@ -206,6 +206,7 @@ a { color: var(--color-accent); }
 }
 .btn-primary:active { transform: scale(0.98); opacity: 0.85; }
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn-primary.btn-inactive { opacity: 0.4; cursor: not-allowed; }
 
 .btn-danger {
   display: block;
