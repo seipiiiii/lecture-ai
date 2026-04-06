@@ -552,7 +552,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hideSetup();
       checkApiKey();
       UI.showToast('APIキーを設定しました。さっそく使ってみましょう！');
-    } catch {
+    } catch (e) {
       setupLoading.classList.add('hidden');
       setupBtn.disabled = false;
       setupError.textContent = '⚠️ APIキーが無効です。確認して再度入力してください';
@@ -564,11 +564,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // 初期化
   // ===========================
   const init = () => {
-    Quiz.init();
-    if (!Storage.getApiKey()) {
-      showSetup();
-    } else {
-      checkApiKey();
+    try {
+      Quiz.init();
+      if (!Storage.getApiKey()) {
+        showSetup();
+      } else {
+        checkApiKey();
+      }
+    } catch (e) {
+      console.error('init error:', e);
     }
   };
 

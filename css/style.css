@@ -3,7 +3,7 @@
    =========================== */
 .setup-screen {
   position: fixed;
-  inset: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: var(--color-bg);
   display: flex;
   align-items: center;
@@ -56,10 +56,10 @@
   font-size: 14px;
 }
 
-/* フェードイン */
+/* フェードイン（transformを使わずopacityのみ） */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 .app-header, .main-content, .tab-bar, .help-fab {
   animation: fadeIn 0.3s ease both;
@@ -108,7 +108,11 @@ a { color: var(--color-accent); }
    =========================== */
 .app-header {
   position: fixed;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
   height: var(--header-h);
   background: var(--color-bg);
   border-bottom: 1px solid var(--color-border);
@@ -117,14 +121,6 @@ a { color: var(--color-accent); }
   justify-content: space-between;
   padding: 0 16px;
   z-index: 100;
-  max-width: 480px;
-  margin: 0 auto;
-}
-
-/* For PC centering */
-@media (min-width: 480px) {
-  .app-header { left: 50%; transform: translateX(-50%); right: auto; width: 480px; }
-  .tab-bar { left: 50%; transform: translateX(-50%); right: auto; width: 480px; }
 }
 
 .app-title { font-size: 18px; font-weight: 700; color: var(--color-accent); }
@@ -133,11 +129,12 @@ a { color: var(--color-accent); }
   position: fixed;
   top: var(--header-h);
   bottom: var(--tabbar-h);
-  left: 0; right: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  max-width: 480px;
-  margin: 0 auto;
 }
 
 /* ===========================
@@ -155,7 +152,11 @@ a { color: var(--color-accent); }
    =========================== */
 .tab-bar {
   position: fixed;
-  bottom: 0; left: 0; right: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
   height: var(--tabbar-h);
   background: var(--color-bg);
   border-top: 1px solid var(--color-border);
