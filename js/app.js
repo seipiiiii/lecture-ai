@@ -168,8 +168,10 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const showProgress = () => {
-    document.getElementById('progress-error').classList.add('hidden');
-    document.getElementById('progress-running').classList.remove('hidden');
+    const errEl = document.getElementById('progress-error');
+    const runEl = document.getElementById('progress-running');
+    if (errEl) errEl.classList.add('hidden');
+    if (runEl) runEl.classList.remove('hidden');
     document.getElementById('progress-area').classList.remove('hidden');
     document.getElementById('result-area').classList.add('hidden');
     document.getElementById('btn-analyze').disabled = true;
@@ -178,10 +180,13 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const showProgressError = (msg) => {
-    document.getElementById('progress-running').classList.add('hidden');
+    const runEl = document.getElementById('progress-running');
     const errEl = document.getElementById('progress-error');
-    errEl.textContent = '⚠️ ' + msg;
-    errEl.classList.remove('hidden');
+    if (runEl) runEl.classList.add('hidden');
+    if (errEl) {
+      errEl.textContent = '⚠️ ' + msg;
+      errEl.classList.remove('hidden');
+    }
     document.getElementById('btn-analyze').disabled = false;
     document.getElementById('btn-analyze').textContent = '分析する';
   };
