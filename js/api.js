@@ -3,7 +3,7 @@
  */
 
 const API = (() => {
-  const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+  const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent';
   const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 
   const MIME_MAP = {
